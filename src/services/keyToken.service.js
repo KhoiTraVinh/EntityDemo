@@ -6,7 +6,7 @@ class KeyTokenService {
 
     static createKeyToken = async ({ userId, publicKey, privateKey }) => {
         const tokens = await keyTokenSchema.create({
-            userId: userId,
+            user: userId,
             publicKey: publicKey,
             privateKey: privateKey
         });

@@ -11,6 +11,7 @@ const KeyTokenService = require('./keyToken.service');
 const { createTokenPair } = require('../utils/auth.utils');
 const { getInfoData } = require('../utils/index');
 const { ConflictRequestError, ForbiddenRequestError } = require('../core/error.response');
+const { OK, CREATED } = require('../core/success.response');
 
 class AuthService {
 
@@ -41,21 +42,17 @@ class AuthService {
             }
 
             const tokens = await createTokenPair({ userId: newUser._id, email }, publicKey, privateKey);
-            console.log('Create Token Success: %d', tokens);
+            console.log('Create Token Success:', tokens);
 
-            return {
-                code: 201,
+            return new CREATED({
                 metadata: {
                     user: getInfoData({ fields: ['_id', 'name', 'email'], object: newUser }),
                     tokens
                 }
-            }
+            })
         }
 
-        return {
-            code: 200,
-            metadata: null
-        }
+        return new OK()
     }
 }
 
