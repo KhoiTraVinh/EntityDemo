@@ -11,7 +11,7 @@ const KeyTokenService = require('./keyToken.service');
 const { createTokenPair } = require('../utils/auth.utils');
 const { getInfoData } = require('../utils/index');
 const { ConflictRequestError, ForbiddenRequestError, BadRequestError, AuthenticationRequestError } = require('../core/error.response');
-const { OK, CREATED } = require('../core/success.response');
+const { OK } = require('../core/success.response');
 const { findByEmail } = require('../services/user.service');
 
 class AuthService {
@@ -30,11 +30,13 @@ class AuthService {
 
         const publicKey = crypto.randomBytes(64).toString('hex');
         const privateKey = crypto.randomBytes(64).toString('hex');
-        const tokens = await createTokenPair({ userId: user._id, email }, publicKey, privateKey);
+        const { _id: userId } = user;
+        const tokens = await createTokenPair({ userId: userId, email }, publicKey, privateKey);
         await KeyTokenService.createKeyToken({
             refreshToken: tokens.refreshToken,
             publicKey: publicKey,
-            privateKey: privateKey
+            privateKey: privateKey,
+            userId: userId
         });
         return {
             user: getInfoData({ fields: ['_id', 'name', 'email'], object: user }),
