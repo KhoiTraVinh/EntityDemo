@@ -8,70 +8,53 @@ const Role = {
 }
 const crypto = require('crypto');
 const KeyTokenService = require('./keyToken.service');
-const {createTokenPair} = require('../utils/auth.utils');
-const {getInfoData} = require('../utils/index');
+const { createTokenPair } = require('../utils/auth.utils');
+const { getInfoData } = require('../utils/index');
+const { ConflictRequestError, ForbiddenRequestError } = require('../core/error.response');
 
-class AuthService{
-    
+class AuthService {
+
     static signUp = async ({ name, email, password }) => {
-        try{
-            const user = await userSchema.findOne({email}).lean();
-            if(user)
-            {
-                return {
-                    code: 'xxxx',
-                    message: 'Shop already registered'
-                }
-            };
+        const user = await userSchema.findOne({ email }).lean();
+        if (user) {
+            throw new ConflictRequestError('Shop already registered');
+        };
 
-            const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(password, 10);
 
-            const newUser = await userSchema.create({
-                name, email, password: passwordHash, roles: [Role.Root]
+        const newUser = await userSchema.create({
+            name, email, password: passwordHash, roles: [Role.Root]
+        });
+
+        if (newUser) {
+            const publicKey = crypto.randomBytes(64).toString('hex');
+            const privateKey = crypto.randomBytes(64).toString('hex');
+
+            const keyStore = await KeyTokenService.createKeyToken({
+                userId: newUser._id,
+                publicKey: publicKey,
+                privateKey: privateKey
             });
 
-            if(newUser)
-            {
-                const publicKey = crypto.randomBytes(64).toString('hex');
-                const privateKey = crypto.randomBytes(64).toString('hex');
-                
-                const keyStore = await KeyTokenService.createKeyToken({
-                    userId: newUser._id,
-                    publicKey: publicKey,
-                    privateKey: privateKey
-                });
-
-                if(!keyStore)
-                {
-                    return {
-                        code: 'xxxxx',
-                        message: 'publicKeyString Error'
-                    };
-                }
-
-                const tokens = await createTokenPair({userId: newUser._id, email}, publicKey, privateKey);
-                console.log('Create Token Success: %d', tokens);
-
-                return {
-                    code: 201,
-                    metadata: {
-                        user: getInfoData({fields: ['_id', 'name', 'email'], object: newUser}),
-                        tokens
-                    }
-                }
+            if (!keyStore) {
+                throw new ForbiddenRequestError('PublicKeyString Error');
             }
 
-            return {
-                code: 200,
-                metadata: null
-            }
+            const tokens = await createTokenPair({ userId: newUser._id, email }, publicKey, privateKey);
+            console.log('Create Token Success: %d', tokens);
 
-        }catch(error){
             return {
-                code: 'xxx',
-                message: error.message,
-                status: 'error'
-            };
+                code: 201,
+                metadata: {
+                    user: getInfoData({ fields: ['_id', 'name', 'email'], object: newUser }),
+                    tokens
+                }
+            }
+        }
+
+        return {
+            code: 200,
+            metadata: null
         }
     }
 }

@@ -2,20 +2,15 @@
 
 const keyTokenSchema = require('../models/keytoken.model');
 
-class KeyTokenService{
+class KeyTokenService {
 
-    static createKeyToken = async ({userId, publicKey, privateKey}) =>{
-        try{
-            console.log(userId);
-            const tokens = await keyTokenSchema.create({
-                userId: userId,
-                publicKey: publicKey,
-                privateKey: privateKey
-            });
-            return tokens ? tokens.publicKey : null;
-        }catch(error){
-            return error;
-        }
+    static createKeyToken = async ({ userId, publicKey, privateKey }) => {
+        const tokens = await keyTokenSchema.create({
+            userId: userId,
+            publicKey: publicKey,
+            privateKey: privateKey
+        });
+        return tokens ? tokens.publicKey : null;
     }
 }
 
