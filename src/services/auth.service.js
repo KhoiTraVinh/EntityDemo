@@ -10,10 +10,38 @@ const crypto = require('crypto');
 const KeyTokenService = require('./keyToken.service');
 const { createTokenPair } = require('../utils/auth.utils');
 const { getInfoData } = require('../utils/index');
-const { ConflictRequestError, ForbiddenRequestError } = require('../core/error.response');
+const { ConflictRequestError, ForbiddenRequestError, BadRequestError, AuthenticationRequestError } = require('../core/error.response');
 const { OK, CREATED } = require('../core/success.response');
+const { findByEmail } = require('../services/user.service');
 
 class AuthService {
+
+    static login = async ({ email, password, refreshToken = null }) => {
+
+        const user = await findByEmail({ email });
+        if (!user) {
+            throw new BadRequestError('User not registered');
+        }
+
+        const match = bcrypt.compare(password, user.password);
+        if (!match) {
+            throw new AuthenticationRequestError('Authentication error');
+        }
+
+        const publicKey = crypto.randomBytes(64).toString('hex');
+        const privateKey = crypto.randomBytes(64).toString('hex');
+        const tokens = await createTokenPair({ userId: user._id, email }, publicKey, privateKey);
+        await KeyTokenService.createKeyToken({
+            refreshToken: tokens.refreshToken,
+            publicKey: publicKey,
+            privateKey: privateKey
+        });
+        return {
+            user: getInfoData({ fields: ['_id', 'name', 'email'], object: user }),
+            tokens
+        }
+    };
+
 
     static signUp = async ({ name, email, password }) => {
         const user = await userSchema.findOne({ email }).lean();
@@ -44,16 +72,14 @@ class AuthService {
             const tokens = await createTokenPair({ userId: newUser._id, email }, publicKey, privateKey);
             console.log('Create Token Success:', tokens);
 
-            return new CREATED({
-                metadata: {
-                    user: getInfoData({ fields: ['_id', 'name', 'email'], object: newUser }),
-                    tokens
-                }
-            })
+            return {
+                user: getInfoData({ fields: ['_id', 'name', 'email'], object: newUser }),
+                tokens
+            }
         }
 
-        return new OK()
-    }
+        throw new OK()
+    };
 }
 
 
