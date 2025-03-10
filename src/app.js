@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const app = express();
-const { checkOverLoad } = require('./helpers/check.connect');
+const { initTables } = require('./helpers/dynamodb.helper');
 // init router
 app.use(morgan('combined'));
 app.use(helmet());
@@ -14,8 +14,8 @@ app.use(express.urlencoded({
     extended: true
 }));
 // init db
-require('./dbs/init.mongodb');
-checkOverLoad();
+require('./dbs/init.dynamodb');
+initTables();
 //int routes
 app.use('/', require('./routes'));
 
