@@ -69,10 +69,8 @@ const initTables = async () => {
 
 const insertData = async (tableName, data) => {
     try {
-        // Validate dữ liệu trước khi thêm
-        const validatedData = validateData(tableName, data);
         // Chuyển object thành định dạng DynamoDB
-        const formattedData = Object.entries(validatedData).reduce((acc, [key, value]) => {
+        const formattedData = Object.entries(data).reduce((acc, [key, value]) => {
             acc[key] = typeof value === "number" ? { N: value.toString() } : { S: value };
             return acc;
         }, {});
@@ -83,7 +81,7 @@ const insertData = async (tableName, data) => {
         };
 
         await DynamoDBSingleton.send(new PutItemCommand(params));
-        console.log(`✅ Inserted into "${tableName}":`, validatedData);
+        console.log(`✅ Inserted into "${tableName}":`, data);
     } catch (err) {
         console.error(`❌ Error inserting into "${tableName}":`, err);
     }

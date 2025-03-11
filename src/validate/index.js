@@ -29,4 +29,20 @@ const validateData = (tableName, data) => {
   return value;
 };
 
-module.exports = { validateData };
+// 🛠️ Hàm validate email
+const validateEmail = (email) => {
+  const schema = Joi.string().email().required();
+  const { error } = schema.validate(email);
+  if (error) throw new Error(`❌ Invalid email: ${error.message}`);
+  return true;
+};
+
+// 🛠️ Hàm validate phone
+const validatePhone = (phone) => {
+  const schema = Joi.string().length(11).required();
+  const { error } = schema.validate(phone);
+  if (error) throw new Error(`❌ Invalid phone: ${error.message}`);
+  return true;
+};
+
+module.exports = { validateData, validateEmail, validatePhone };

@@ -6,5 +6,7 @@ const router = express.Router();
 
 router.post('/login', asyncHandler(AuthController.login));
 router.post('/signup', asyncHandler(AuthController.signUp));
-
+router.post('/check/email', asyncHandler(AuthController.checkExistEmail));
+router.post('/check/phone', asyncHandler(AuthController.checkExistPhone));
+router.post('/register', asyncHandler(AuthController.addCustomer));
 module.exports = router;
