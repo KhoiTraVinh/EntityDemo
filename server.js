@@ -1,8 +1,7 @@
 const app = require("./src/app");
-const {app: {port}} = require('./src/configs/config.dynamodb');
 
-const server = app.listen(port, () => {
-    console.log('start %d', port);
+const server = app.listen(3052, () => {
+    console.log('start %d', 3052);
 });
 
 process.on('SIGINT', () => {

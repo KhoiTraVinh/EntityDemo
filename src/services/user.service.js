@@ -33,8 +33,9 @@ const checkExitPhone = async ({phone}) => {
 
 // 🛠️ Add customer function
 const addCustomer = async ({email, phone, password}) => {
+    console.log(email, phone, password);
     // Validate email and phone
-    validateEmail(email);
+    checkExitEmail({email});
     validatePhone(phone);
 
     // Hash password using SHA-256
